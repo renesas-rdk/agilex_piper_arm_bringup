@@ -1,0 +1,35 @@
+# Motion Control Handle Configuration for Agilex Piper Arm
+# This provides interactive markers in RViz for manual Cartesian control
+
+agilex_piper_motion_control_handle:
+  ros__parameters:
+    # Robot kinematic configuration
+    end_effector_link: "tool0"     # End-effector frame
+    robot_base_link: "base_link"   # Robot base frame
+
+    # Controlled joints
+    joints:
+      - joint1
+      - joint2
+      - joint3
+      - joint4
+      - joint5
+      - joint6
+
+    # Interactive marker configuration
+    marker:
+      scale: 0.2                    # Size of interactive markers
+      show_path: true               # Show end-effector path
+      path_color: [0.0, 1.0, 0.0, 0.8]  # Path color (RGBA)
+
+    # Control behavior
+    control_frame: "tool0"          # Frame for control commands
+    publish_rate: 50.0              # Hz - Command publishing rate
+
+    # Safety and limits
+    max_linear_velocity: 0.5        # m/s - Max linear speed
+    max_angular_velocity: 1.0       # rad/s - Max angular speed
+
+    # Command smoothing
+    command_smoothing: true         # Enable command smoothing
+    smoothing_factor: 0.1           # Smoothing factor (0.0 - 1.0)

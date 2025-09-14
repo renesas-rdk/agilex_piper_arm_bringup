@@ -1,0 +1,157 @@
+{
+  "configById": {
+    "Publish!3btk0b7": {
+      "buttonText": "Publish",
+      "buttonTooltip": "",
+      "advancedView": true,
+      "value": "{\n  \"header\": {\n    \"stamp\": {\n      \"sec\": 0,\n      \"nanosec\": 0\n    },\n    \"frame_id\": \"base_link\"\n  },\n  \"pose\": {\n    \"position\": {\n      \"x\": 0.2,\n      \"y\": 0,\n      \"z\": 0.2\n    },\n    \"orientation\": {\n      \"x\": 0,\n      \"y\": 1,\n      \"z\": 0,\n      \"w\": 0\n    }\n  }\n}",
+      "topicName": "/agilex_piper_cartesian_motion_controller/target_frame",
+      "datatype": "geometry_msgs/msg/PoseStamped"
+    },
+    "RawMessages!jdlvgr": {
+      "diffEnabled": false,
+      "diffMethod": "custom",
+      "diffTopicPath": "",
+      "showFullMessageForDiff": false,
+      "topicPath": "/agilex_piper_cartesian_motion_controller/current_pose",
+      "fontSize": 12
+    },
+    "RawMessages!1y5fp7v": {
+      "diffEnabled": false,
+      "diffMethod": "custom",
+      "diffTopicPath": "",
+      "showFullMessageForDiff": false,
+      "topicPath": "/joint_states",
+      "fontSize": 12
+    },
+    "3D!1du8q22": {
+      "cameraState": {
+        "perspective": true,
+        "distance": 2.0934790944648527,
+        "phi": 65.4546027528734,
+        "thetaOffset": -7.270783417710384,
+        "targetOffset": [
+          0.01799515083094296,
+          0.23959850594517287,
+          4.55826220439145e-20
+        ],
+        "target": [
+          0,
+          0,
+          0
+        ],
+        "targetOrientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "fovy": 45,
+        "near": 0.1,
+        "far": 5000
+      },
+      "followMode": "follow-none",
+      "scene": {
+        "meshUpAxis": "z_up",
+        "transforms": {
+          "editable": false,
+          "showLabel": false,
+          "labelSize": 0.06,
+          "axisScale": 0.25,
+          "lineWidth": 1,
+          "visible": false
+        },
+        "backgroundColor": "#272727"
+      },
+      "transforms": {},
+      "topics": {},
+      "layers": {
+        "grid": {
+          "visible": true,
+          "frameLocked": true,
+          "label": "Grid",
+          "instanceId": "f512ec82-367b-4004-a84d-17320938a01b",
+          "layerId": "foxglove.Grid",
+          "size": 10,
+          "divisions": 10,
+          "lineWidth": 1,
+          "color": "#248eff",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ]
+        },
+        "7975a5bb-b268-4159-8b37-450138690126": {
+          "displayMode": "auto",
+          "fallbackColor": "#ffffff",
+          "showAxis": false,
+          "showOutlines": true,
+          "visible": true,
+          "frameLocked": true,
+          "instanceId": "7975a5bb-b268-4159-8b37-450138690126",
+          "label": "URDF",
+          "layerId": "foxglove.Urdf",
+          "sourceType": "topic",
+          "url": "",
+          "filePath": "",
+          "parameter": "",
+          "topic": "/robot_description",
+          "framePrefix": "",
+          "order": 1,
+          "links": {},
+          "axisScale": 1,
+          "opacity": 1
+        }
+      },
+      "publish": {
+        "type": "point",
+        "poseTopic": "/move_base_simple/goal",
+        "pointTopic": "/clicked_point",
+        "poseEstimateTopic": "/initialpose",
+        "poseEstimateXDeviation": 0.5,
+        "poseEstimateYDeviation": 0.5,
+        "poseEstimateThetaDeviation": 0.26179939
+      },
+      "imageMode": {},
+      "followTf": "world"
+    },
+    "Publish!3ve7a3k": {
+      "buttonText": "Publish",
+      "buttonTooltip": "",
+      "advancedView": true,
+      "value": "{\n  \"layout\": {\n    \"dim\": [\n      {\n        \"label\": \"\",\n        \"size\": 0,\n        \"stride\": 0\n      }\n    ],\n    \"data_offset\": 0\n  },\n  \"data\": [\n    0.785, 0.0, 0.0, 0.0, 0.0, 0.0\n  ]\n}",
+      "topicName": "/agilex_piper_joint_position_controller/commands",
+      "datatype": "std_msgs/msg/Float64MultiArray"
+    }
+  },
+  "globalVariables": {},
+  "userNodes": {},
+  "playbackConfig": {
+    "speed": 1
+  },
+  "layout": {
+    "direction": "row",
+    "first": {
+      "first": "Publish!3btk0b7",
+      "second": "Publish!3ve7a3k",
+      "direction": "column"
+    },
+    "second": {
+      "direction": "row",
+      "first": {
+        "first": "RawMessages!jdlvgr",
+        "second": "RawMessages!1y5fp7v",
+        "direction": "column"
+      },
+      "second": "3D!1du8q22",
+      "splitPercentage": 44.385408304983244
+    },
+    "splitPercentage": 30.105118042391865
+  }
+}
