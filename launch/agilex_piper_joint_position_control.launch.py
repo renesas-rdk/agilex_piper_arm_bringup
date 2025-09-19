@@ -129,6 +129,8 @@ def launch_setup(context, *args, **kwargs) -> List[Node]:
             parameters=[
                 robot_description,
                 controller_config,
+                joint_position_config,
+                gripper_config if include_gripper_value.lower() == 'true' else {},
             ],
             remappings=[
                 ('/controller_manager/robot_description', '/robot_description'),
@@ -159,7 +161,6 @@ def launch_setup(context, *args, **kwargs) -> List[Node]:
             arguments=[
                 'agilex_piper_joint_position_controller',
                 '--controller-manager', '/controller_manager',
-                '--param-file', joint_position_config,
             ],
         ),
         # Foxglove bridge for web-based visualization
@@ -179,7 +180,6 @@ def launch_setup(context, *args, **kwargs) -> List[Node]:
                 arguments=[
                     'agilex_piper_gripper_action_controller',
                     '--controller-manager', '/controller_manager',
-                    '--param-file', gripper_config,
                 ],
             )
         )

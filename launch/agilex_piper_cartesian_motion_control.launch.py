@@ -51,7 +51,8 @@ Test Cartesian motion commands in another terminal with:
 
 Test gripper commands (when include_gripper=true):
   # Use standard gripper action interface (position = total opening width):
-  ros2 action send_goal /agilex_piper_gripper_action_controller/gripper_cmd control_msgs/action/GripperCommand "{command: {position: 0.05, max_effort: 10.0}}"
+  ros2 action send_goal /agilex_piper_gripper_action_controller/gripper_cmd \
+    control_msgs/action/GripperCommand "{command: {position: 0.05, max_effort: 10.0}}"
 
 Or you can publish from foxglove studio's built-in publisher panel.
 
@@ -111,7 +112,8 @@ def launch_setup(context, *args, **kwargs) -> List[Node]:
     # Select cartesian motion controller config based on gripper (static YAMLs)
     cartesian_motion_config = os.path.join(
         pkg_share, 'config',
-        'agilex_piper_cartesian_motion_controller_wi_gripper.yaml' if include_gripper_value.lower() == 'true' else 'agilex_piper_cartesian_motion_controller.yaml'
+        'agilex_piper_cartesian_motion_controller_wi_gripper.yaml' if include_gripper_value.lower() == 'true'
+        else 'agilex_piper_cartesian_motion_controller.yaml'
     )
 
     gripper_config = os.path.join(
@@ -136,6 +138,8 @@ def launch_setup(context, *args, **kwargs) -> List[Node]:
             parameters=[
                 robot_description,
                 controller_config,
+                cartesian_motion_config,
+                gripper_config if include_gripper_value.lower() == 'true' else {},
             ],
             remappings=[
                 ('/controller_manager/robot_description', '/robot_description'),
@@ -166,7 +170,6 @@ def launch_setup(context, *args, **kwargs) -> List[Node]:
             arguments=[
                 'agilex_piper_cartesian_motion_controller',
                 '--controller-manager', '/controller_manager',
-                '--param-file', cartesian_motion_config,
             ],
         ),
         # Foxglove bridge for web-based visualization
@@ -186,7 +189,6 @@ def launch_setup(context, *args, **kwargs) -> List[Node]:
                 arguments=[
                     'agilex_piper_gripper_action_controller',
                     '--controller-manager', '/controller_manager',
-                    '--param-file', gripper_config,
                 ],
             )
         )
