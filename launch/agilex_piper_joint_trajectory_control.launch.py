@@ -25,6 +25,7 @@ This launch file starts:
 - joint_state_broadcaster: Publishes joint states from hardware
 - joint_trajectory_controller: Provides joint space trajectory following
 - gripper_controller: (Optional) Provides gripper action interface when include_gripper=true
+- gpio_controller: Provides extended arm features (administrative control, pose feedback, status monitoring)
 - foxglove_bridge: WebSocket bridge for Foxglove Studio visualization
 
 Usage:
@@ -58,6 +59,15 @@ Test trajectory in another terminal with:
 Test gripper commands (when include_gripper=true):
   # Use standard gripper action interface (position = total opening width):
   ros2 action send_goal /agilex_piper_gripper_action_controller/gripper_cmd control_msgs/action/GripperCommand "{command: {position: 0.05, max_effort: 10.0}}"
+
+Test extended arm features with GPIO controller:
+  # Enable arm functionality
+  ros2 topic pub --once /agilex_piper_gpio_controller/commands
+    control_msgs/msg/DynamicInterfaceGroupValues
+    "{interface_groups: ['arm_admin'], interface_values: [{interface_names: ['enable_arm'], values: [1.0]}]}"
+
+  # Monitor current pose during trajectory execution
+  ros2 topic echo /agilex_piper_gpio_controller/gpio_states
 
 Or run the Python test script:
   python3 ros2_ws/install/agilex_piper_arm_bringup/share/agilex_piper_arm_bringup/test/test_joint_trajectory.py
@@ -123,6 +133,10 @@ def launch_setup(context, *args, **kwargs) -> List[Node]:
         pkg_share, 'config', 'agilex_piper_gripper_action_controller.yaml'
     )
 
+    gpio_config = os.path.join(
+        pkg_share, 'config', 'agilex_piper_gpio_controller.yaml'
+    )
+
     # Foxglove bridge launch file
     foxglove_bridge_launch = os.path.join(
         get_package_share_directory('foxglove_bridge'),
@@ -143,6 +157,7 @@ def launch_setup(context, *args, **kwargs) -> List[Node]:
                 controller_config,
                 joint_trajectory_config,
                 gripper_config if include_gripper_value.lower() == 'true' else {},
+                gpio_config,
             ],
             remappings=[
                 ('/controller_manager/robot_description', '/robot_description'),
@@ -178,6 +193,17 @@ def launch_setup(context, *args, **kwargs) -> List[Node]:
         # Foxglove bridge for web-based visualization
         IncludeLaunchDescription(
             FrontendLaunchDescriptionSource(foxglove_bridge_launch)
+        ),
+        # GPIO controller for extended arm features
+        Node(
+            package='controller_manager',
+            executable='spawner',
+            name='gpio_controller_spawner',
+            output='screen',
+            arguments=[
+                'agilex_piper_gpio_controller',
+                '--controller-manager', '/controller_manager',
+            ],
         )
     ]
 

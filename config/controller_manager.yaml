@@ -33,3 +33,7 @@ controller_manager:
     # Gripper controller
     agilex_piper_gripper_action_controller:
       type: position_controllers/GripperActionController
+
+    # GPIO controller for extended arm features
+    agilex_piper_gpio_controller:
+      type: gpio_controllers/GpioCommandController
