@@ -122,7 +122,9 @@ def launch_setup(context, *args, **kwargs) -> List[Node]:
 
     # Controller configurations
     controller_config = os.path.join(
-        pkg_share, 'config', 'controller_manager.yaml'
+        pkg_share, 'config',
+        'controller_manager_mock.yaml' if use_mock_hardware_value.lower() == 'true'
+        else 'controller_manager.yaml'
     )
 
     joint_trajectory_config = os.path.join(
