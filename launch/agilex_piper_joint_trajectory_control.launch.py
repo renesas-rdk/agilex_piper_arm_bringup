@@ -95,6 +95,7 @@ def launch_setup(context, *args, **kwargs) -> List[Node]:
     can_interface_value = LaunchConfiguration('can_interface').perform(context)
     use_mock_hardware_value = LaunchConfiguration('use_mock_hardware').perform(context)
     include_gripper_value = LaunchConfiguration('include_gripper').perform(context)
+    speed_value = LaunchConfiguration('speed').perform(context)
 
     # Get package directories
     pkg_share = get_package_share_directory('agilex_piper_arm_bringup')
@@ -114,7 +115,9 @@ def launch_setup(context, *args, **kwargs) -> List[Node]:
         robot_description_xacro,
         mappings={
             'can_interface': can_interface_value,
-            'use_mock_hardware': use_mock_hardware_value
+            'use_mock_hardware': use_mock_hardware_value,
+            'motion_mode': '1',  # Joint mode for joint trajectory control
+            'speed': speed_value
         }
     ).toxml()
 
@@ -248,9 +251,16 @@ def generate_launch_description() -> LaunchDescription:
         description='Include gripper controller and interfaces (true/false)'
     )
 
+    speed_arg = DeclareLaunchArgument(
+        'speed',
+        default_value='50',
+        description='Speed percentage (1-100, default: 50)'
+    )
+
     return LaunchDescription([
         can_interface_arg,
         use_mock_hardware_arg,
         include_gripper_arg,
+        speed_arg,
         OpaqueFunction(function=launch_setup)
     ])

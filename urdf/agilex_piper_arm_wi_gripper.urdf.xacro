@@ -4,6 +4,8 @@
   <!-- Load arguments -->
   <xacro:arg name="can_interface" default="can0"/>
   <xacro:arg name="use_mock_hardware" default="false"/>
+  <xacro:arg name="motion_mode" default="1"/>
+  <xacro:arg name="speed" default="50"/>
   <xacro:arg name="prefix" default=""/>
 
   <!-- Include the arm description -->
@@ -34,6 +36,8 @@
     can_interface="$(arg can_interface)"
     use_mock_hardware="$(arg use_mock_hardware)"
     include_gripper="true"
+    motion_mode="$(arg motion_mode)"
+    speed="$(arg speed)"
     prefix="$(arg prefix)"/>
 
 </robot>
