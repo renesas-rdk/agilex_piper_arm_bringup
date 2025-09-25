@@ -49,7 +49,9 @@ Usage:
   Then connect Foxglove Studio to ws://<foxglove_bridge_ip>:8765
 
 Test native Cartesian control commands:
-  # Set target pose using simple PoseStamped messages (recommended)
+  # Primary interface - always use this topic for target poses (works with or without gripper)
+  # With gripper: Pose is interpreted as TCP pose and automatically projected to tool0
+  # Without gripper: Pose is used directly as tool0 pose
   ros2 topic pub --once /agilex_piper_gpio_controller/target_pose geometry_msgs/msg/PoseStamped "
   {
     header: {frame_id: 'base_link'},
@@ -196,6 +198,22 @@ def launch_setup(context, *args, **kwargs) -> List[Node]:
                 '--controller-manager', '/controller_manager',
             ],
         ),
+        # Pose link projector for TCP to tool0 transformation (when gripper is enabled)
+        Node(
+            package='agilex_piper_utils',
+            executable='pose_link_projector',
+            name='tcp_to_tool0_projector',
+            output='screen',
+            parameters=[
+                {'base_frame': 'base_link'},
+                {'source_link': 'tcp'},          # TCP link
+                {'target_link': 'tool0'},        # Tool0 link
+            ],
+            remappings=[
+                ('~/in/pose', '/agilex_piper_gpio_controller/target_pose'),
+                ('~/out/pose', '/tool0_target_pose'),  # Feeds pose_to_gpio_converter
+            ],
+        ) if include_gripper_value.lower() == 'true' else None,
         # Pose to GPIO converter for easy Cartesian control
         Node(
             package='agilex_piper_utils',
@@ -203,7 +221,7 @@ def launch_setup(context, *args, **kwargs) -> List[Node]:
             name='pose_to_gpio_converter',
             output='screen',
             remappings=[
-                ('target_pose', '/agilex_piper_gpio_controller/target_pose'),
+                ('target_pose', '/agilex_piper_gpio_controller/target_pose' if include_gripper_value.lower() != 'true' else '/tool0_target_pose'),
                 ('gpio_commands', '/agilex_piper_gpio_controller/commands'),
             ],
         ),
@@ -212,6 +230,9 @@ def launch_setup(context, *args, **kwargs) -> List[Node]:
             FrontendLaunchDescriptionSource(foxglove_bridge_launch)
         ),
     ]
+
+    # Filter out None values from conditional nodes
+    nodes = [node for node in nodes if node is not None]
 
     # Add gripper controller if requested
     if include_gripper_value.lower() == 'true':
