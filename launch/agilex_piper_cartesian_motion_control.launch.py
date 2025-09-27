@@ -28,6 +28,23 @@ This launch file starts:
 - gpio_controller: Provides extended arm features (administrative control, pose feedback, status monitoring)
 - foxglove_bridge: WebSocket bridge for Foxglove Studio visualization
 
+Parameters:
+  can_interface (string, default='can2'):
+    CAN interface name for hardware communication (e.g., 'can0', 'can1', 'can2').
+    Only relevant when use_mock_hardware=false.
+
+  use_mock_hardware (bool, default='false'):
+    Enable mock hardware simulation for testing without physical robot.
+    Set to 'true' for safe testing and development.
+
+  include_gripper (bool, default='true'):
+    Include gripper controller and action adapter in the system.
+    When enabled, provides both action (/gripper_cmd) and topic (/gripper_command) interfaces.
+
+  speed (int, default='50'):
+    Speed percentage for arm movement (1-100).
+    Controls the maximum velocity and acceleration limits.
+
 Usage:
   # For physical robot with CAN interface (with gripper):
   ros2 launch agilex_piper_arm_bringup agilex_piper_cartesian_motion_control.launch.py
@@ -52,8 +69,8 @@ Test Cartesian motion commands in another terminal with:
 
 Test gripper commands (when include_gripper=true):
   # Use standard gripper action interface (position = total opening width):
-  ros2 action send_goal /agilex_piper_gripper_action_controller/gripper_cmd \
-    control_msgs/action/GripperCommand "{command: {position: 0.05, max_effort: 10.0}}"
+  ros2 action send_goal /gripper_cmd \
+    control_msgs/action/ParallelGripperCommand "{command: {position: [0.05], effort: [10.0]}}"
 
 Test extended arm features with GPIO controller:
   # Enable arm functionality
@@ -137,7 +154,7 @@ def launch_setup(context, *args, **kwargs) -> List[Node]:
     )
 
     gripper_config = os.path.join(
-        pkg_share, 'config', 'agilex_piper_gripper_action_controller.yaml'
+        pkg_share, 'config', 'agilex_piper_gripper_position_controller.yaml'
     )
 
     gpio_config = os.path.join(
@@ -216,18 +233,31 @@ def launch_setup(context, *args, **kwargs) -> List[Node]:
 
     # Add gripper controller if requested
     if include_gripper_value.lower() == 'true':
-        nodes.append(
+        # Add gripper controller and action adapter
+        nodes.extend([
             Node(
                 package='controller_manager',
                 executable='spawner',
                 name='gripper_controller_spawner',
                 output='screen',
                 arguments=[
-                    'agilex_piper_gripper_action_controller',
+                    'agilex_piper_gripper_position_controller',
                     '--controller-manager', '/controller_manager',
                 ],
+            ),
+            Node(
+                package='agilex_piper_utils',
+                executable='gripper_action_adapter',
+                name='gripper_action_adapter',
+                output='screen',
+                parameters=[{
+                    'action_server_name': 'gripper_cmd',
+                    'gripper_command_topic': 'gripper_command',
+                    'position_controller_topic': '/agilex_piper_gripper_position_controller/commands',
+                    'max_gripper_width': 0.07,
+                }],
             )
-        )
+        ])
 
     return nodes
 

@@ -1,0 +1,18 @@
+# Gripper Position Controller Configuration for Agilex Piper Arm
+# This controller provides gripper control using JointGroupPositionController
+# Use with gripper_action_adapter from agilex_piper_utils for action interface compatibility
+
+agilex_piper_gripper_position_controller:
+  ros__parameters:
+    # Joint specification for parallel gripper
+    joints:
+      - joint7  # Left gripper finger
+      - joint8  # Right gripper finger
+
+    # Interface configuration
+    command_interfaces:
+      - position
+
+    state_interfaces:
+      - position
+      - velocity

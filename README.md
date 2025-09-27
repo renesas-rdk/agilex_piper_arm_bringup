@@ -68,7 +68,7 @@ Controller configurations are provided in `config/`:
 - `controller_manager.yaml`: Controller manager settings and available controllers
 - `agilex_piper_joint_trajectory_controller.yaml`: Joint trajectory controller parameters
 - `agilex_piper_joint_position_controller.yaml`: Joint position controller parameters
-- `agilex_piper_gripper_action_controller.yaml`: Gripper action controller parameters
+- `agilex_piper_gripper_position_controller.yaml`: Gripper position controller parameters (used with gripper_action_adapter)
 - `agilex_piper_cartesian_motion_controller.yaml`: Cartesian motion controller parameters
 - `agilex_piper_motion_control_handle.yaml`: Motion control handle configuration
 
@@ -122,7 +122,11 @@ ros2 topic pub --once /agilex_piper_cartesian_motion_controller/target_frame geo
 
 **Gripper Control (when include_gripper=true):**
 ```bash
-ros2 action send_goal /agilex_piper_gripper_action_controller/gripper_cmd control_msgs/action/GripperCommand "{command: {position: 0.05, max_effort: 10.0}}"
+# Use action interface (with feedback)
+ros2 action send_goal /gripper_cmd control_msgs/action/ParallelGripperCommand "{command: {position: [0.05], max_effort: [10.0]}}"
+
+# Or use simple topic interface (no feedback)
+ros2 topic pub /gripper_command control_msgs/msg/GripperCommand "{position: 0.05, max_effort: 10.0}}"
 ```
 
 ## Introspection
