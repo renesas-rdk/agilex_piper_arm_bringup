@@ -25,6 +25,8 @@ This launch file starts:
 - joint_state_broadcaster: Publishes joint states from hardware
 - gripper_controller: (Optional) Provides gripper action interface when include_gripper=true
 - gpio_controller: Provides extended arm features (administrative control, pose feedback, status monitoring)
+- pose_link_projector (forward): Converts TCP pose to tool0 pose (when gripper enabled)
+- pose_link_projector (feedback): Converts tool0 GPIO states to TCP current pose
 - pose_to_gpio_converter: Converts PoseStamped messages to GPIO controller commands
 - foxglove_bridge: WebSocket bridge for Foxglove Studio visualization
 
@@ -34,6 +36,14 @@ Key differences from other launch files:
 - Includes pose_to_gpio_converter for easy PoseStamped message interface
 - Pose commands can be sent via standard geometry_msgs/PoseStamped messages
 - Suitable for applications requiring hardware-level Cartesian control
+
+Data flow (with gripper):
+  Command:  /target_pose (TCP) -> tcp_to_tool0_projector -> /tool0_target_pose -> pose_to_gpio_converter -> GPIO
+  Feedback: GPIO states (tool0) -> tool0_to_tcp_projector -> /current_pose (TCP)
+
+Data flow (without gripper):
+  Command:  /target_pose (tool0) -> pose_to_gpio_converter -> GPIO
+  Feedback: GPIO states (tool0) -> tool0_to_tcp_projector -> /current_pose (tool0)
 
 Parameters:
   can_interface (string, default='can2'):
@@ -90,6 +100,11 @@ Test native Cartesian control commands:
 
   # Monitor current pose and arm status
   ros2 topic echo /agilex_piper_gpio_controller/gpio_states
+
+  # Monitor current TCP pose (automatically converted from tool0)
+  # With gripper: Shows TCP pose
+  # Without gripper: Shows tool0 pose (same as TCP)
+  ros2 topic echo /agilex_piper_gpio_controller/current_pose
 
   # Enable/disable arm
   ros2 topic pub --once /agilex_piper_gpio_controller/commands
@@ -222,7 +237,7 @@ def launch_setup(context, *args, **kwargs) -> List[Node]:
                 '--controller-manager', '/controller_manager',
             ],
         ),
-        # Pose link projector for TCP to tool0 transformation (when gripper is enabled)
+        # Pose link projector for TCP to tool0 transformation (forward - when gripper is enabled)
         Node(
             package='agilex_piper_utils',
             executable='pose_link_projector',
@@ -238,6 +253,23 @@ def launch_setup(context, *args, **kwargs) -> List[Node]:
                 ('~/out/pose', '/tool0_target_pose'),  # Feeds pose_to_gpio_converter
             ],
         ) if include_gripper_value.lower() == 'true' else None,
+        # Pose link projector for tool0 to TCP transformation (feedback - when gripper is enabled)
+        Node(
+            package='agilex_piper_utils',
+            executable='pose_link_projector',
+            name='tool0_to_tcp_projector',
+            output='screen',
+            parameters=[
+                {'base_frame': 'base_link'},
+                {'source_link': 'tool0'},
+                {'target_link': 'tcp' if include_gripper_value.lower() == 'true' else 'tool0'},
+                {'interface_group': 'arm_current_pose'},
+            ],
+            remappings=[
+                ('~/in/gpio_states', '/agilex_piper_gpio_controller/gpio_states'),
+                ('~/out/pose', '/agilex_piper_gpio_controller/current_pose'),
+            ],
+        ),
         # Pose to GPIO converter for easy Cartesian control
         Node(
             package='agilex_piper_utils',
