@@ -4,6 +4,7 @@ ROS 2 package that provides launch files, controller configurations, robot descr
 
 ## Features
 - Launch files for different control modes (joint trajectory, joint position, Cartesian motion)
+- **MuJoCo simulation support** with companion launch file and automated test scripts
 - Controller configurations for all supported control modes
 - Complete robot URDF descriptions (arm-only and arm+gripper configurations)
 - Test scripts for validating robot functionality
@@ -45,11 +46,25 @@ Provides Cartesian space motion control:
 ros2 launch agilex_piper_arm_bringup agilex_piper_cartesian_motion_control.launch.py
 ```
 
+### MuJoCo Simulation Support
+Companion launch file for MuJoCo simulation (runs on target board while MuJoCo runs on PC host):
+```bash
+ros2 launch agilex_piper_arm_bringup agilex_piper_mujoco_cartesian_control.launch.py
+```
+
+**Requirements:**
+- MuJoCo simulation running on PC host with: `ros2 launch agilex_piper_mujoco bringup_mujoco_cartesian_motion_controller.launch.py`
+- Both PC host and target board on the same ROS 2 network (same ROS_DOMAIN_ID)
+- Provides gripper action adapter and Foxglove bridge for the distributed setup
+
 ## Launch Arguments
 All launch files support the following arguments:
 - `can_interface`: CAN interface for hardware communication (default: "can2")
 - `use_mock_hardware`: Use mock hardware for testing (default: "false")
 - `include_gripper`: Include gripper controller and interfaces (default: "true")
+
+**MuJoCo launch file arguments:**
+- `max_gripper_width`: Maximum gripper opening width in meters (default: "0.07")
 
 ### Examples
 ```bash
@@ -86,6 +101,19 @@ ros2 launch agilex_piper_arm_bringup agilex_piper_joint_trajectory_control.launc
 
 # Terminal 2: Run test script
 python3 /home/ubuntu/ros2_ws/src/robots/agilex_piper_arm/agilex_piper_arm_bringup/test/test_joint_trajectory.py
+```
+
+### MuJoCo Pick and Place Test
+Comprehensive automated pick and place test for MuJoCo simulation:
+```bash
+# Terminal 1 (PC host): Start MuJoCo simulation
+ros2 launch agilex_piper_mujoco bringup_mujoco_cartesian_motion_controller.launch.py
+
+# Terminal 2 (target board): Start companion nodes
+ros2 launch agilex_piper_arm_bringup agilex_piper_mujoco_cartesian_control.launch.py
+
+# Terminal 3 (target board): Run automated test
+python3 $(ros2 pkg prefix agilex_piper_arm_bringup)/share/agilex_piper_arm_bringup/test/test_mujoco_pick_and_place.py
 ```
 
 ### Manual Commands
@@ -127,6 +155,22 @@ ros2 action send_goal /gripper_cmd control_msgs/action/ParallelGripperCommand "{
 
 # Or use simple topic interface (no feedback)
 ros2 topic pub /gripper_command control_msgs/msg/GripperCommand "{position: 0.05, max_effort: 10.0}}"
+```
+
+**MuJoCo Simulation Commands:**
+```bash
+# Cartesian motion (sent to MuJoCo simulation on PC host)
+ros2 topic pub --once /agilex_piper_cartesian_motion_controller/target_frame geometry_msgs/msg/PoseStamped "{
+  header: {frame_id: 'base_link'},
+  pose: {
+    position: {x: 0.2, y: 0.0, z: 0.2},
+    orientation: {x: 0.7071, y: 0.7071, z: 0.0, w: 0.0}
+  }
+}"
+
+# Gripper commands (processed by companion nodes on target board)
+ros2 action send_goal /gripper_cmd control_msgs/action/ParallelGripperCommand "{command: {position: [0.05], effort: [10.0]}}"
+ros2 topic pub --once /gripper_command control_msgs/msg/GripperCommand "{position: 0.05, max_effort: 10.0}"
 ```
 
 ## Introspection
